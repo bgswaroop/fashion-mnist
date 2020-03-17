@@ -8,7 +8,7 @@ from tqdm import tqdm
 import pickle
 
 
-class Utils:
+class FashionMnistUtils:
     def __init__(self):
         self.test_csv = Path(os.path.dirname(os.path.realpath(__file__))).joinpath("fashion-mnist_test.csv")
         self.train_csv = Path(os.path.dirname(os.path.realpath(__file__))).joinpath("fashion-mnist_train.csv")
@@ -37,10 +37,6 @@ class Utils:
         # takes about 12 seconds
         eng = matlab.engine.start_matlab()
         eng.cd(str(Path(os.path.dirname(os.path.realpath(__file__))).parent.joinpath("CORFPushPull")), nargout=0)
-        # eng.addpath(eng.genpath(r"C:\Program Files\MATLAB\R2019b\toolbox\images\images"), nargout=0)
-        # eng.workspace['p'] = str(Path(r"C:/Program files/MATLAB/R2019b/toolbox/images/images"))
-        # a = eng.eval('addpath(genpath(p))')
-        # eng.license("test", "Image_Toolbox", nargout=1)
 
         batch_binary_map = np.empty_like(batch_data).astype(int)
         batch_corf_response = np.empty_like(batch_data).astype(float)
@@ -50,16 +46,18 @@ class Utils:
 
             bm, cr = eng.contour_detection_from_python(1.0, 4.0, 1.8, 0.007, nargout=2)
 
-            batch_binary_map[idx] = np.array(bm._data).reshape((28, 28), order='F')    # MATLAB stores in col major order
+            batch_binary_map[idx] = np.array(bm._data).reshape((28, 28), order='F')  # MATLAB stores in col major order
             batch_corf_response[idx] = np.array(cr._data).reshape((28, 28), order='F')
 
         return batch_binary_map, batch_corf_response
 
 
 if __name__ == "__main__":
-    data_utils = Utils()
-    # todo: implement cache for training
-    train_data_cache_file = Path(os.path.dirname(os.path.realpath(__file__))).joinpath("cache/train_data.pkl")
+    data_utils = FashionMnistUtils()
+
+    # Load the train data
+    train_data_cache_file = Path(os.path.dirname(os.path.realpath(__file__))). \
+        joinpath("cache/fashion_mnist_train_contours.pkl")
     if train_data_cache_file.exists():
         with open(str(train_data_cache_file), "rb") as f:
             train_grayscale_images, train_labels, train_binary_maps, train_corf_response = pickle.load(f)
@@ -69,8 +67,9 @@ if __name__ == "__main__":
         with open(str(train_data_cache_file), 'wb') as f:
             pickle.dump([train_grayscale_images, train_labels, train_binary_maps, train_corf_response], f)
 
-    # todo: implement cache for testing
-    test_data_cache_file = Path(os.path.dirname(os.path.realpath(__file__))).joinpath("cache/test_data.pkl")
+    # Load test data
+    test_data_cache_file = Path(os.path.dirname(os.path.realpath(__file__))). \
+        joinpath("cache/fashion_mnist_test_contours.pkl")
     if test_data_cache_file.exists():
         with open(str(test_data_cache_file), "rb") as f:
             test_grayscale_images, test_labels, test_binary_maps, test_corf_response = pickle.load(f)
@@ -79,3 +78,5 @@ if __name__ == "__main__":
         test_binary_maps, test_corf_response = data_utils.extract_corf_contours(test_grayscale_images)
         with open(str(test_data_cache_file), 'wb') as f:
             pickle.dump([test_grayscale_images, test_labels, test_binary_maps, test_corf_response], f)
+
+    pass
