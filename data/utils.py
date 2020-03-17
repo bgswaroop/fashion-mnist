@@ -17,7 +17,7 @@ class Utils:
         if partition is "train":
             data_frame = pd.read_csv(self.train_csv, index_col='label', dtype=np.float, memory_map=True)
         elif partition is "test":
-            data_frame = pd.read_csv(self.train_csv, index_col='label', dtype=np.float, memory_map=True)
+            data_frame = pd.read_csv(self.test_csv, index_col='label', dtype=np.float, memory_map=True)
         else:
             raise ValueError("Invalid partition: expected 'train' or 'test'")
 
@@ -36,15 +36,17 @@ class Utils:
 
         # takes about 12 seconds
         eng = matlab.engine.start_matlab()
-        eng.cd(r'D:\GitCode\fashion-mnist\CORFPushPull', nargout=0)
+        eng.cd(str(Path(os.path.dirname(os.path.realpath(__file__))).parent.joinpath("CORFPushPull")), nargout=0)
         # eng.addpath(eng.genpath(r"C:\Program Files\MATLAB\R2019b\toolbox\images\images"), nargout=0)
-        eng.workspace['p'] = str(Path(r"C:/Program files/MATLAB/R2019b/toolbox/images/images"))
-        a = eng.eval('addpath(genpath(p))')
+        # eng.workspace['p'] = str(Path(r"C:/Program files/MATLAB/R2019b/toolbox/images/images"))
+        # a = eng.eval('addpath(genpath(p))')
         # eng.license("test", "Image_Toolbox", nargout=1)
+
         batch_binary_map = np.empty_like(batch_data).astype(int)
         batch_corf_response = np.empty_like(batch_data).astype(float)
+        mat_filename = str(Path(os.path.dirname(os.path.realpath(__file__))).joinpath("cache/input_image.mat"))
         for idx, img in tqdm(enumerate(batch_data)):
-            scipy.io.savemat("cache/input_image.mat", {"img": img})
+            scipy.io.savemat(mat_filename, {"img": img})
 
             bm, cr = eng.contour_detection_from_python(1.0, 4.0, 1.8, 0.007, nargout=2)
 
