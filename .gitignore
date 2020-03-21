@@ -1,2 +1,4 @@
 /venv/
 jobscript.sh
+/runtime_data/
+__pycache__/
