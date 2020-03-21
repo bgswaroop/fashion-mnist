@@ -16,8 +16,9 @@ class FashionMnistUtils:
         self.pwd = os.path.dirname(os.path.realpath(__file__))
         self.test_csv = Path(self.pwd).joinpath("fashion-mnist_test.csv")
         self.train_csv = Path(self.pwd).joinpath("fashion-mnist_train.csv")
+        self.image_shape = (28, 28)
 
-    def __load_data(self, partition="train"):
+    def __load_data(self, partition="train", generate_noise=False):
         if partition is "train":
             data_frame = pd.read_csv(self.train_csv, index_col='label', dtype=np.float, memory_map=True)
         elif partition is "test":
@@ -30,8 +31,13 @@ class FashionMnistUtils:
         data = [None] * num_samples
         labels = np.empty(num_samples)
         for idx in np.arange(num_samples):
-            data[idx] = np.array(data_frame.iloc[[idx]]).reshape((28, 28))
+            data[idx] = np.array(data_frame.iloc[[idx]]).reshape(self.image_shape)
             labels[idx] = int(data_frame.index[idx])
+
+        # Adding a Gaussian noise to the images
+        if generate_noise:
+            for idx in np.arange(num_samples):
+                data[idx] += np.random.normal(loc=0, scale=0.1, size=self.image_shape)
 
         return data, labels
 
@@ -50,25 +56,31 @@ class FashionMnistUtils:
 
             bm, cr = eng.contour_detection_from_python(1.0, 4.0, 1.8, 0.007, nargout=2)
 
-            batch_binary_map[idx] = np.array(bm._data).reshape((28, 28), order='F')  # MATLAB stores in col major order
-            batch_corf_response[idx] = np.array(cr._data).reshape((28, 28), order='F')
+            batch_binary_map[idx] = np.array(bm._data).reshape(self.image_shape,
+                                                               order='F')  # MATLAB stores in col major order
+            batch_corf_response[idx] = np.array(cr._data).reshape(self.image_shape, order='F')
 
         return batch_binary_map, batch_corf_response
 
-    def load_train_val_data(self, val_split=0.2):
+    def load_train_val_data(self, val_split=0.2, generate_noise=False):
         """
         Load the train + validation tensorflow data
+        :param generate_noise: boolean - Generates Gaussian noise and add to the input data
         :param val_split: float value must be in the range 0-1
         :return: (train_grayscale, val_grayscale), (train_corf, val_corf)
         """
 
         # Load the data
-        train_data_cache_file = Path(self.pwd).joinpath("cache/fashion_mnist_train_contours.pkl")
+        if generate_noise:
+            train_data_cache_file = Path(self.pwd).joinpath("cache/f_mnist_noise_train.pkl")
+        else:
+            train_data_cache_file = Path(self.pwd).joinpath("cache/f_mnist_clean_train.pkl")
+
         if train_data_cache_file.exists():
             with open(str(train_data_cache_file), "rb") as f:
                 grayscale_images, labels, _, corf_images = pickle.load(f)
         else:
-            grayscale_images, labels = self.__load_data(partition="train")
+            grayscale_images, labels = self.__load_data(partition="train", generate_noise=generate_noise)
             binary_maps, corf_images = self.__extract_corf_contours(grayscale_images)
             with open(str(train_data_cache_file), 'wb') as f:
                 pickle.dump([grayscale_images, labels, binary_maps, corf_images], f)
@@ -103,19 +115,24 @@ class FashionMnistUtils:
 
         return (train_grayscale, val_grayscale), (train_corf, val_corf)
 
-    def load_test_data(self):
+    def load_test_data(self, generate_noise=False):
         """
         Load the tensorflow data set for evaluation
+        :param generate_noise: boolean - Generates Gaussian noise and add to the input data
         :return: test_grayscale, test_corf
         """
 
         # Load the data
-        test_data_cache_file = Path(self.pwd).joinpath("cache/fashion_mnist_test_contours.pkl")
+        if generate_noise:
+            test_data_cache_file = Path(self.pwd).joinpath("cache/f_mnist_noise_test.pkl")
+        else:
+            test_data_cache_file = Path(self.pwd).joinpath("cache/f_mnist_clean_test.pkl")
+
         if test_data_cache_file.exists():
             with open(str(test_data_cache_file), "rb") as f:
                 grayscale_images, labels, _, corf_images = pickle.load(f)
         else:
-            grayscale_images, labels = self.__load_data(partition="test")
+            grayscale_images, labels = self.__load_data(partition="test", generate_noise=generate_noise)
             binary_maps, corf_images = self.__extract_corf_contours(grayscale_images)
             with open(str(test_data_cache_file), 'wb') as f:
                 pickle.dump([grayscale_images, labels, binary_maps, corf_images], f)

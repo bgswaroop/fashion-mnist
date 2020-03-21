@@ -16,16 +16,17 @@ class RunFlow:
         self.model_grayscale = None
         self.model_corf = None
 
-    def execute_all(self):
-        self.__load_data()
+    def execute_all(self, generate_noise):
+        self.__load_data(generate_noise)
         self.__train_model()
         self.__select_best_model()
         self.__evaluate_model()
 
-    def __load_data(self):
+    def __load_data(self, generate_noise=False):
         data_utils = FashionMnistUtils()
-        (self.train_grayscale, self.val_grayscale), (self.train_corf, self.val_corf) = data_utils.load_train_val_data()
-        self.test_grayscale, self.test_corf = data_utils.load_test_data()
+        (self.train_grayscale, self.val_grayscale), (self.train_corf, self.val_corf) = \
+            data_utils.load_train_val_data(generate_noise)
+        self.test_grayscale, self.test_corf = data_utils.load_test_data(generate_noise)
 
     def __train_model(self):
         logger.info("Training Grayscale Model")
@@ -74,5 +75,5 @@ class RunFlow:
 
 if __name__ == "__main__":
     flow = RunFlow()
-    flow.execute_all()
+    flow.execute_all(generate_noise=True)
     pass
