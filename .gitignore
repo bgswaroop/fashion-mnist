@@ -3,3 +3,4 @@ jobscript.sh
 /runtime_data/
 __pycache__/
 data/cache/input_image.mat
+slurm-*.out
