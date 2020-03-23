@@ -31,7 +31,7 @@ class FashionMnistUtils:
         data = [None] * num_samples
         labels = np.empty(num_samples)
         for idx in np.arange(num_samples):
-            data[idx] = np.array(data_frame.iloc[[idx]]).reshape(self.image_shape)
+            data[idx] = np.array(data_frame.iloc[[idx]]).reshape(self.image_shape) / 255.0
             labels[idx] = int(data_frame.index[idx])
 
         # Adding a Gaussian noise to the images
@@ -151,6 +151,9 @@ class FashionMnistUtils:
         )
 
         return test_grayscale, test_corf
+
+    def save_generated_images(self):
+        pass
 
 
 if __name__ == "__main__":
