@@ -49,15 +49,15 @@ class Visualize:
     def plot_combined_training_curves(grayscale_history, corf_history):
         epochs = grayscale_history.epoch
         # Plot the cost function (Loss)
-        training_loss = grayscale_history.history["loss"]
-        validation_loss = grayscale_history.history["val_loss"]
-        plt.plot(epochs, training_loss, label='Grayscale Training Loss')
-        plt.plot(epochs, validation_loss, label='Grayscale Validation Loss')
+        training_acc = grayscale_history.history["loss"]
+        validation_acc = grayscale_history.history["val_loss"]
+        plt.plot(epochs, training_acc, label='Grayscale Training Loss')
+        plt.plot(epochs, validation_acc, label='Grayscale Validation Loss')
 
-        training_loss = corf_history.history["loss"]
-        validation_loss = corf_history.history["val_loss"]
-        plt.plot(epochs, training_loss, label='CORF Maps Training Loss')
-        plt.plot(epochs, validation_loss, label='CORF Maps Validation Loss')
+        training_acc = corf_history.history["loss"]
+        validation_acc = corf_history.history["val_loss"]
+        plt.plot(epochs, training_acc, label='CORF Maps Training Loss')
+        plt.plot(epochs, validation_acc, label='CORF Maps Validation Loss')
 
         plt.legend()
         plt.title("Learning Plots")
@@ -66,6 +66,27 @@ class Visualize:
         plt.tight_layout()
 
         plot_path = SessionSetup().get_session_folder_path().joinpath("Learning_plots_combined_loss.png")
+        plt.savefig(plot_path)
+        plt.show()
+
+        # Plot the cost function (Loss)
+        training_acc = grayscale_history.history["acc"]
+        validation_acc = grayscale_history.history["val_acc"]
+        plt.plot(epochs, training_acc, label='Grayscale Training Accuracy')
+        plt.plot(epochs, validation_acc, label='Grayscale Validation Accuracy')
+
+        training_acc = corf_history.history["acc"]
+        validation_acc = corf_history.history["val_acc"]
+        plt.plot(epochs, training_acc, label='CORF Maps Training Accuracy')
+        plt.plot(epochs, validation_acc, label='CORF Maps Validation Accuracy')
+
+        plt.legend()
+        plt.title("Learning Plots")
+        plt.xlabel('Epochs')
+        plt.ylabel('Accuracy')
+        plt.tight_layout()
+
+        plot_path = SessionSetup().get_session_folder_path().joinpath("Learning_plots_combined_acc.png")
         plt.savefig(plot_path)
         plt.show()
 

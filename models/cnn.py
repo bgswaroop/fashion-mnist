@@ -14,13 +14,14 @@ class ConvolutionalNeuralNet1:
 
     def build_model(self):
         input_layer = tf.keras.Input(shape=(28, 28, 1), dtype=float, name="Input")
-        x = tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 3), activation=tf.keras.activations.relu)(input_layer)
-        x = tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 3), activation=tf.keras.activations.relu)(x)
-        x = tf.keras.layers.MaxPool2D(pool_size=(2, 2), strides=(2, 2))(x)
+        x = tf.keras.layers.Conv2D(filters=20, kernel_size=(3, 3), activation=tf.keras.activations.relu,
+                                   kernel_regularizer=tf.keras.regularizers.l2(0.0001))(input_layer)
+        x = tf.keras.layers.Conv2D(filters=20, kernel_size=(3, 3), activation=tf.keras.activations.relu,
+                                   kernel_regularizer=tf.keras.regularizers.l2(0.0001))(x)
         x = tf.keras.layers.Flatten()(x)
 
-        x = tf.keras.layers.Dense(units=128, activation=tf.keras.activations.relu)(x)
-        x = tf.keras.layers.Dense(units=64, activation=tf.keras.activations.relu)(x)
+        x = tf.keras.layers.Dense(units=128, activation=tf.keras.activations.relu,
+                                  kernel_regularizer=tf.keras.regularizers.l2(0.01))(x)
         output_layer = tf.keras.layers.Dense(units=10, activation=tf.keras.activations.softmax)(x)
 
         self.model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
@@ -39,9 +40,9 @@ class ConvolutionalNeuralNet1:
             self.build_model()
             self.compile_model()
 
-        history = self.model.fit(x=train_data.batch(32), verbose=2,
+        history = self.model.fit(x=train_data.batch(128), verbose=2,
                                  callbacks=[SaveModelOnEpochEnd(file_prefix=file_prefix)],
-                                 epochs=30, validation_data=val_data.batch(32), initial_epoch=1,
+                                 epochs=150, validation_data=val_data.batch(128), initial_epoch=1,
                                  use_multiprocessing=True)
 
         # save the training history
@@ -92,7 +93,7 @@ class ConvolutionalNeuralNet1:
             title="Select the best {} model".format(file_prefix),
             filetypes=[("HDF5 Files", "*.h5")]
         )
-        # root.destroy()
+        logger.info("Selected best model: {}\n".format(selected_best_model))
 
         self.update_weights(selected_best_model)
 

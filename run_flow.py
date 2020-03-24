@@ -27,7 +27,7 @@ class RunFlow:
         logger.info("Loading the train data")
         (self.train_grayscale, self.val_grayscale), (self.train_corf, self.val_corf) = \
             data_utils.load_train_val_data(generate_noise=generate_noise)
-        logger.info("Loading the train data")
+        logger.info("Loading the test data")
         self.test_grayscale, self.test_corf = data_utils.load_test_data(generate_noise=generate_noise)
 
     def __train_model(self):

@@ -3,19 +3,30 @@
 % The communication between python and MATLAB is performed via loading and
 % writing .mat files.
 
-function [binarymap, corfresponse] = contour_detection_from_python(sigma, beta, inhibitionFactor, highthresh)
+function [binarymap, corfresponse] = contour_detection_from_python(img, sigma, beta, inhibitionFactor, highthresh)
 
-w = 4;
+% dbstop in contour_detection_from_python at 8
 
-% Load the .mat inputs
-img = load("./../data/cache/input_image.mat").img;
-img1 = padarray(img, [w,w]);
+% default arguments
+if nargin == 0
+    sigma = 1;
+    beta = 4;
+    inhibitionFactor = 1.8;
+    highthresh = 0.007;
+end
+
+% w = 4;
+% img = imread("D:\GitCode\fashion-mnist\data\cache\clean_images\00001.png");
+% img1 = padarray(img, [w,w]);
+% img1 = double(img1);
+% img2 = imnoise(img1,'gaussian',0.1);
 
 % Evaluate 
-[binarymap, corfresponse] = CORFContourDetection(img1, sigma, beta, inhibitionFactor, highthresh);
+[binarymap, corfresponse] = CORFContourDetection(img, sigma, beta, inhibitionFactor, highthresh);
 
-binarymap = binarymap(w+1:end-w, w+1:end-w);
-corfresponse = corfresponse(w+1:end-w, w+1:end-w); 
+corfresponse = corfresponse ./ max(corfresponse(:));
+% binarymap = binarymap(w+1:end-w, w+1:end-w);
+% corfresponse = corfresponse(w+1:end-w, w+1:end-w); 
 
 
 % Save the outputs as .mat files

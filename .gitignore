@@ -2,5 +2,10 @@
 jobscript.sh
 /runtime_data/
 __pycache__/
-data/cache/input_image.mat
 slurm-*.out
+/data/cache/backup/
+/data/cache/clean_images/
+/data/cache/corf_maps_from_clean_images/
+/data/cache/corf_maps_from_noisy_images/
+/data/cache/noisy_images/
+/CORFPushPull/contour_detection_from_python.asv
