@@ -9,6 +9,7 @@ function [binarymap, corfresponse] = contour_detection_from_python(img, sigma, b
 
 % default arguments
 if nargin == 0
+    img = imread("D:\GitCode\fashion-mnist\data\cache\clean_images\00013.png");
     sigma = 1;
     beta = 4;
     inhibitionFactor = 1.8;
@@ -16,19 +17,22 @@ if nargin == 0
 end
 
 % w = 4;
-% img = imread("D:\GitCode\fashion-mnist\data\cache\clean_images\00001.png");
-% img1 = padarray(img, [w,w]);
-% img1 = double(img1);
-% img2 = imnoise(img1,'gaussian',0.1);
+rf = 3;
+img1 = imresize(img,rf);
+% img = padarray(img, [w,w]);
+img2 = double(img1)./255;
+% img2 = imnoise(img2,'gaussian',0.1);
 
 % Evaluate 
-[binarymap, corfresponse] = CORFContourDetection(img, sigma, beta, inhibitionFactor, highthresh);
+[~, corfresponse] = CORFContourDetection(img2, sigma, beta, inhibitionFactor, highthresh);
+[binarymap, ~] = CORFContourDetection(img, sigma, beta, inhibitionFactor, highthresh);
 
-corfresponse = corfresponse ./ max(corfresponse(:));
 % binarymap = binarymap(w+1:end-w, w+1:end-w);
 % corfresponse = corfresponse(w+1:end-w, w+1:end-w); 
+corfresponse = imresize(corfresponse,1/rf);
+corfresponse = (corfresponse - min(corfresponse(:)))./ (max(corfresponse(:)) - min(corfresponse(:)));
 
 
-% Save the outputs as .mat files
-% save("./../data/cache/output_binary_map.mat", "binarymap")
-% save("./../data/cache/output_corf_response.mat", "corfresponse")
+% figure;
+% subplot(1,2,1);imagesc(imresize(img2,1/rf));
+% subplot(1,2,2);imagesc(corfresponse);
