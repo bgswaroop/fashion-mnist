@@ -55,7 +55,6 @@ class FashionMnistUtils:
         binary_maps = np.empty_like(data).astype(int)
         corf_response = np.empty_like(data).astype(float)
         for idx, img in tqdm(enumerate(data)):
-
             # Compute the CORF response
             matlab_img = matlab.double(initializer=img.tolist(), size=img.shape, is_complex=False)
             bm, cr = eng.contour_detection_from_python(matlab_img, 1.0, 4.0, 1.8, 0.007, nargout=2)
@@ -170,37 +169,40 @@ class FashionMnistUtils:
 
         return test_grayscale, test_corf
 
+    def __save_images(self, data_file, img_dir_name, corf_dir_name):
+
+        if data_file.exists():
+            with open(str(data_file), "rb") as f:
+                grayscale_images, labels, _, corf_maps = pickle.load(f)
+                grayscale_images = (grayscale_images * 255).astype(np.uint8)
+                corf_maps = (corf_maps * 255).astype(np.uint8)
+
+            img_dir_source = Path(self.pwd).joinpath("cache/{}".format(img_dir_name))
+            img_dir_corf = Path(self.pwd).joinpath("cache/{}".format(corf_dir_name))
+
+            if not img_dir_source.exists():
+                os.makedirs(str(img_dir_source))
+            if not img_dir_corf.exists():
+                os.makedirs(str(img_dir_corf))
+
+            for idx in np.arange(len(grayscale_images)):
+                # Save the clean images
+                img_file = img_dir_source.joinpath("{}_{}.png".format(str(idx).zfill(5), labels[idx]))
+                imageio.imwrite(img_file, grayscale_images[idx])
+
+                # Save the corf maps generated from clean images
+                img_file = img_dir_corf.joinpath("{}_{}.png".format(str(idx).zfill(5), labels[idx]))
+                imageio.imwrite(img_file, corf_maps[idx])
+
     def save_generated_images(self):
 
         logger.info("Begin saving the clean training images to disk")
         data_file = Path(self.pwd).joinpath("cache/f_mnist_clean_train.pkl")
-        if data_file.exists():
-            with open(str(data_file), "rb") as f:
-                grayscale_images, _, _, corf_maps = pickle.load(f)
-
-            for idx in np.arange(len(grayscale_images)):
-                # Save the clean images
-                img_file = Path(self.pwd).joinpath("cache/clean_images/{}.png".format(str(idx).zfill(5)))
-                imageio.imwrite(img_file, grayscale_images[idx])
-
-                # Save the corf maps generated from clean images
-                img_file = Path(self.pwd).joinpath("cache/corf_maps_from_clean_images/{}.png".format(str(idx).zfill(5)))
-                imageio.imwrite(img_file, corf_maps[idx])
+        self.__save_images(data_file, img_dir_name="clean_images", corf_dir_name="clean_images_corf_maps")
 
         logger.info("Begin saving the noisy training images to disk")
         data_file = Path(self.pwd).joinpath("cache/f_mnist_noise_train.pkl")
-        if data_file.exists():
-            with open(str(data_file), "rb") as f:
-                grayscale_images, _, _, corf_maps = pickle.load(f)
-
-            for idx in np.arange(len(grayscale_images)):
-                # Save the noisy images
-                img_file = Path(self.pwd).joinpath("cache/noisy_images/{}.png".format(str(idx).zfill(5)))
-                imageio.imwrite(img_file, grayscale_images[idx])
-
-                # Save the corf maps generated from noisy images
-                img_file = Path(self.pwd).joinpath("cache/corf_maps_from_noisy_images/{}.png".format(str(idx).zfill(5)))
-                imageio.imwrite(img_file, corf_maps[idx])
+        self.__save_images(data_file, img_dir_name="noisy_images", corf_dir_name="noisy_images_corf_maps")
 
 
 if __name__ == "__main__":
